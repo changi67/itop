@@ -16,6 +16,8 @@
 //   You should have received a copy of the GNU Affero General Public License
 //   along with iTop. If not, see <http://www.gnu.org/licenses/>
 
+require_once(APPROOT.'/core/cmdbsource.class.inc.php');
+
 /**
  * The standardized result of any pass/fail check performed by the setup
  *

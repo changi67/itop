@@ -1204,41 +1204,6 @@ class WizStepModulesChoice extends WizardStep
 {
 	static protected $SEP = '_';
 	protected $bUpgrade = false;
-	
-	/**
-	 *
-	 * @var iTopExtensionsMap
-	 */
-	protected $oExtensionsMap;
-	
-	/**
-	 * Whether we were able to load the choices from the database or not
-	 * @var bool
-	 */
-	protected $bChoicesFromDatabase;
-	
-	public function __construct(WizardController $oWizard, $sCurrentState)
-	{
-		parent::__construct($oWizard, $sCurrentState);
-		$this->bChoicesFromDatabase = false;
-		$this->oExtensionsMap = new iTopExtensionsMap();
-		$sPreviousSourceDir = $this->oWizard->GetParameter('previous_version_dir', '');
-		$sConfigPath = null;
-		if (($sPreviousSourceDir !== '') && is_readable($sPreviousSourceDir.'/conf/production/config-itop.php'))
-		{
-			$sConfigPath = $sPreviousSourceDir.'/conf/production/config-itop.php';
-		}
-		else if (is_readable(utils::GetConfigFilePath('production')))
-		{
-			$sConfigPath = utils::GetConfigFilePath('production');
-		}
-
-		if ($sConfigPath !== null) // only called if the config file exists : we are updating a previous installation !
-		{
-			$oConfig = new Config($sConfigPath);
-			$this->bChoicesFromDatabase = $this->oExtensionsMap->LoadChoicesFromDatabase($oConfig);
-		}
-	}
 
 	public function GetTitle()
 	{
