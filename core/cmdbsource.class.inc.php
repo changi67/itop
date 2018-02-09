@@ -172,11 +172,8 @@ class CMDBSource
 		self::$m_sDBTlsCaPath = empty($sTlsCaPath) ? null : $sTlsCaPath;
 		self::$m_sDBTlsCipher = empty($sTlsCipher) ? null : $sTlsCipher;
 
-		// when using TLS add persistent connection to reduce overhead
-		$bUsePersistentConnection = self::IsDbConnectionUsingTls($sServer, $sServer, $sServer);
-
 		self::$m_oMysqli = self::GetMysqliInstance($sServer, $sUser, $sPwd, $sSource, $sTlsKey, $sTlsCert, $sTlsCA,
-			$sTlsCaPath, $sTlsCipher, $bUsePersistentConnection, true);
+			$sTlsCaPath, $sTlsCipher, true);
 	}
 
 	/**
@@ -189,7 +186,6 @@ class CMDBSource
 	 * @param string $sTlsCa
 	 * @param string $sTlsCaPath
 	 * @param string $sTlsCipher
-	 * @param boolean $bUsePersistentConnection {@see http://php.net/manual/en/mysqli.persistconns.php}
 	 * @param boolean $bCheckTlsAfterConnection
 	 *
 	 * @return \mysqli
@@ -197,7 +193,7 @@ class CMDBSource
 	 */
 	public static function GetMysqliInstance(
 		$sServer, $sUser, $sPwd, $sSource = '', $sTlsKey = null, $sTlsCert = null, $sTlsCa = null, $sTlsCaPath = null,
-		$sTlsCipher = null, $bUsePersistentConnection = false, $bCheckTlsAfterConnection = false
+		$sTlsCipher = null, $bCheckTlsAfterConnection = false
 	) {
 		$oMysqli = null;
 
@@ -205,10 +201,6 @@ class CMDBSource
 		$iPort = null;
 		$bTlsEnabled = self::IsDbConnectionUsingTls($sTlsKey, $sTlsCert, $sTlsCa);
 		self::InitServerAndPort($sServer, $iPort);
-		if ($bUsePersistentConnection)
-		{
-			$sServer = 'p:'.$sServer;
-		}
 
 		$iFlags = null;
 
@@ -261,7 +253,7 @@ class CMDBSource
 	}
 
 	/**
-	 * Initialize variables from the static attribute (containing "domain:port" syntax)
+	 * Initialize variables from the static attribute (containing "p:domain:port" syntax)
 	 *
 	 * @param string $sServer
 	 * @param int $iPort
@@ -269,16 +261,31 @@ class CMDBSource
 	private static function InitServerAndPort(&$sServer, &$iPort)
 	{
 		$aConnectInfo = explode(':', self::$m_sDBHost);
-		if (count($aConnectInfo) > 1)
+
+		$bUsePersistentConnection = false;
+		if (strcasecmp($aConnectInfo[0], 'p') == 0)
 		{
-			// Override the default port
-			$sServer = $aConnectInfo[0];
-			$iPort = (int)$aConnectInfo[1];
+			// we might have "p:" prefix to use persistent connections (see http://php.net/manual/en/mysqli.persistconns.php)
+			$bUsePersistentConnection = true;
+			$sServer = $aConnectInfo[0].':'.$aConnectInfo[1];
 		}
 		else
 		{
-			$sServer = self::$m_sDBHost;
-			$iPort = null;
+			$sServer = $aConnectInfo[0];
+		}
+
+		$iConnectInfoCount = count($aConnectInfo);
+		if ($bUsePersistentConnection && ($iConnectInfoCount == 3))
+		{
+			$iPort = $aConnectInfo[2];
+		}
+		else if (!$bUsePersistentConnection && ($iConnectInfoCount == 2))
+		{
+			$iPort = $aConnectInfo[1];
+		}
+		else
+		{
+			$iPort = 3306;
 		}
 	}
 
