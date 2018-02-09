@@ -1,5 +1,5 @@
 <?php
-// Copyright (C) 2010-2017 Combodo SARL
+// Copyright (C) 2010-2018 Combodo SARL
 //
 //   This file is part of iTop.
 //
@@ -20,7 +20,7 @@
 /**
  * Manage a runtime environment
  *
- * @copyright   Copyright (C) 2010-2017 Combodo SARL
+ * @copyright   Copyright (C) 2010-2018 Combodo SARL
  * @license     http://opensource.org/licenses/AGPL-3.0
  */
 
@@ -195,9 +195,8 @@ class RunTimeEnvironment
 		try
 		{
 			require_once(APPROOT.'/core/cmdbsource.class.inc.php');
-			CMDBSource::Init($oConfig->GetDBHost(), $oConfig->GetDBUser(), $oConfig->GetDBPwd(), $oConfig->GetDBName(), $oConfig->GetDBSSLKey(), $oConfig->GetDBSSLCert(), $oConfig->GetDBSSLCA(), $oConfig->GetDBSSLCipher());
-			CMDBSource::SetCharacterSet($oConfig->GetDBCharacterSet(), $oConfig->GetDBCollation());
-			$aSelectInstall = CMDBSource::QueryToArray("SELECT * FROM ".$oConfig->GetDBSubname()."priv_module_install");
+			CMDBSource::InitFromConfig($oConfig);
+			$aSelectInstall = CMDBSource::QueryToArray("SELECT * FROM ".$oConfig->Get('db_subname')."priv_module_install");
 		}
 		catch (MySQLException $e)
 		{
@@ -472,13 +471,13 @@ class RunTimeEnvironment
 	 */
 	public function CreateDatabaseStructure(Config $oConfig, $sMode)
 	{
-		if (strlen($oConfig->GetDBSubname()) > 0)
+		if (strlen($oConfig->Get('db_subname')) > 0)
 		{
-			$this->log_info("Creating the structure in '".$oConfig->GetDBName()."' (table names prefixed by '".$oConfig->GetDBSubname()."').");
+			$this->log_info("Creating the structure in '".$oConfig->Get('db_name')."' (table names prefixed by '".$oConfig->Get('db_subname')."').");
 		}
 		else
 		{
-			$this->log_info("Creating the structure in '".$oConfig->GetDBSubname()."'.");
+			$this->log_info("Creating the structure in '".$oConfig->Get('db_subname')."'.");
 		}
 	
 		//MetaModel::CheckDefinitions();
@@ -491,13 +490,13 @@ class RunTimeEnvironment
 			}
 			else
 			{
-				if (strlen($oConfig->GetDBSubname()) > 0)
+				if (strlen($oConfig->Get('db_subname')) > 0)
 				{
-					throw new Exception("Error: found iTop tables into the database '".$oConfig->GetDBName()."' (prefix: '".$oConfig->GetDBSubname()."'). Please, try selecting another database instance or specify another prefix to prevent conflicting table names.");
+					throw new Exception("Error: found iTop tables into the database '".$oConfig->Get('db_name')."' (prefix: '".$oConfig->Get('db_subname')."'). Please, try selecting another database instance or specify another prefix to prevent conflicting table names.");
 				}
 				else
 				{
-					throw new Exception("Error: found iTop tables into the database '".$oConfig->GetDBName()."'. Please, try selecting another database instance or specify a prefix to prevent conflicting table names.");
+					throw new Exception("Error: found iTop tables into the database '".$oConfig->Get('db_name')."'. Please, try selecting another database instance or specify a prefix to prevent conflicting table names.");
 				}
 			}
 		}
@@ -536,13 +535,13 @@ class RunTimeEnvironment
 			}
 			else
 			{
-				if (strlen($oConfig->GetDBSubname()) > 0)
+				if (strlen($oConfig->Get('db_subname')) > 0)
 				{
-					throw new Exception("Error: No previous instance of iTop found into the database '".$oConfig->GetDBName()."' (prefix: '".$oConfig->GetDBSubname()."'). Please, try selecting another database instance.");
+					throw new Exception("Error: No previous instance of iTop found into the database '".$oConfig->Get('db_name')."' (prefix: '".$oConfig->Get('db_subname')."'). Please, try selecting another database instance.");
 				}
 				else
 				{
-					throw new Exception("Error: No previous instance of iTop found into the database '".$oConfig->GetDBName()."'. Please, try selecting another database instance.");
+					throw new Exception("Error: No previous instance of iTop found into the database '".$oConfig->Get('db_name')."'. Please, try selecting another database instance.");
 				}
 			}
 		}
@@ -615,6 +614,12 @@ class RunTimeEnvironment
 		// Have it work fine even if the DB has been set in read-only mode for the users
 		$iPrevAccessMode = $oConfig->Get('access_mode');
 		$oConfig->Set('access_mode', ACCESS_FULL);
+
+		if (CMDBSource::DBName() == '')
+		{		
+			// In case this has not yet been done
+			CMDBSource::InitFromConfig($oConfig);
+		}
 
 		if ($sShortComment === null)
 		{
@@ -699,15 +704,14 @@ class RunTimeEnvironment
 		try
 		{
 			require_once(APPROOT.'/core/cmdbsource.class.inc.php');
-			CMDBSource::Init($oConfig->GetDBHost(), $oConfig->GetDBUser(), $oConfig->GetDBPwd(), $oConfig->GetDBName(), $oConfig->GetDBSSLKey(), $oConfig->GetDBSSLCert(), $oConfig->GetDBSSLCA(), $oConfig->GetDBSSLCipher());
-			CMDBSource::SetCharacterSet($oConfig->GetDBCharacterSet(), $oConfig->GetDBCollation());
-			$sSQLQuery = "SELECT * FROM ".$oConfig->GetDBSubname()."priv_module_install";
+			CMDBSource::InitFromConfig($oConfig);
+			$sSQLQuery = "SELECT * FROM ".$oConfig->Get('db_subname')."priv_module_install";
 			$aSelectInstall = CMDBSource::QueryToArray($sSQLQuery);
 		}
 		catch (MySQLException $e)
 		{
 			// No database or erroneous information
-			$this->log_error('Can not connect to the database: host: '.$oConfig->GetDBHost().', user:'.$oConfig->GetDBUser().', pwd:'.$oConfig->GetDBPwd().', db name:'.$oConfig->GetDBName());
+			$this->log_error('Can not connect to the database: host: '.$oConfig->Get('db_host').', user:'.$oConfig->Get('db_user').', pwd:'.$oConfig->Get('db_pwd').', db name:'.$oConfig->Get('db_name'));
 			$this->log_error('Exception '.$e->getMessage());
 			return false;
 		}
