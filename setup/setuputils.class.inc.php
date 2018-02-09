@@ -949,18 +949,23 @@ EOF
 		
 	}
 
-	/**
-	 * Helper function check the connection to the database, verify a few conditions (minimum version, etc...) and (if connected)
-	 * enumerate the existing databases (if possible)
-	 * @return mixed false if the connection failed or array('checks' => Array of CheckResult, 'databases' => Array of database names (as strings) or null if not allowed)
-	 */
-	static function CheckServerConnection($sDBServer, $sDBUser, $sDBPwd)
+    /**
+     * Helper function : check the connection to the database, verify a few conditions (minimum version, etc...) and (if connected)
+     * enumerate the existing databases (if possible)
+     *
+     * @param string $sDBServer
+     * @param string $sDBUser
+     * @param string $sDBPwd
+     *
+     * @return mixed false if the connection failed or array('checks' => Array of CheckResult, 'databases' => Array of database names (as strings) or null if not allowed)
+     */
+	static function CheckDbServer($sDBServer, $sDBUser, $sDBPwd, $sSSLKey = NULL, $sSSLCert = NULL, $sSSLCA = NULL, $sSSLCipher = NULL)
 	{
 		$aResult = array('checks' => array(), 'databases' => null);
 		try
 		{
 			$oDBSource = new CMDBSource;
-			$oDBSource->Init($sDBServer, $sDBUser, $sDBPwd);
+			$oDBSource->Init($sDBServer, $sDBUser, $sDBPwd, '', $sSSLKey, $sSSLCert, $sSSLCA, $sSSLCipher);
 			$aResult['checks'][] = new CheckResult(CheckResult::INFO, "Connection to '$sDBServer' as '$sDBUser' successful.");
 			$aResult['checks'][] = new CheckResult(CheckResult::INFO, "Info - User privileges: ".($oDBSource->GetRawPrivileges()));
 
@@ -1009,10 +1014,10 @@ EOF
 		return $aResult;
 	}
 	
-	static public function GetMySQLVersion($sDBServer, $sDBUser, $sDBPwd)
+	static public function GetMySQLVersion($sDBServer, $sDBUser, $sDBPwd, $sSSLKey = NULL, $sSSLCert = NULL, $sSSLCA = NULL, $sSSLCipher = NULL )
 	{
 		$oDBSource = new CMDBSource;
-		$oDBSource->Init($sDBServer, $sDBUser, $sDBPwd);
+		$oDBSource->Init($sDBServer, $sDBUser, $sDBPwd, '', $sSSLKey, $sSSLCert, $sSSLCA, $sSSLCipher);
 		$sDBVersion = $oDBSource->GetDBVersion();
 		return $sDBVersion;
 	}
@@ -1023,10 +1028,17 @@ EOF
 		$sDBUser = $aParameters['db_user'];
 		$sDBPwd = $aParameters['db_pwd'];
 		$sDBName = $aParameters['db_name'];
+		$sSSLKey = $aParameters['db_ssl_key'];
+		$sSSLCert = $aParameters['db_ssl_cert'];
+		$sSSLCA = $aParameters['db_ssl_ca'];
+		$sSSLCipher = $aParameters['db_ssl_cipher'];
 
 		$oPage->add_ready_script('oXHRCheckDB = null;'); 	
 
-		$checks = SetupUtils::CheckServerConnection($sDBServer, $sDBUser, $sDBPwd);
+		$oPage->add_ready_script('oXHRCheckDB = null;');
+
+		$checks = SetupUtils::CheckDbServer($sDBServer, $sDBUser, $sDBPwd, $sSSLKey, $sSSLCert, $sSSLCA, $sSSLCipher);
+
 		if ($checks === false)
 		{
 			// Connection failed, disable the "Next" button
