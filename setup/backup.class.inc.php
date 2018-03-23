@@ -102,27 +102,43 @@ if (class_exists('ZipArchive')) // The setup must be able to start even if the "
 		protected $sDBPwd;
 		protected $sDBName;
 		protected $sDBSubName;
-	
+		protected $sDBTlsKey;
+		protected $sDBTlsCert;
+		protected $sDBTlsCa;
+		protected $sDBTlsCipher;
+
 		/**
 		 * Connects to the database to backup
 		 * By default, connects to the current MetaModel (must be loaded)
-		 * 	 	 
-		 * @param sDBHost string Database host server
-		 * @param $sDBUser string User login
-		 * @param $sDBPwd string User password
-		 * @param $sDBName string Database name
-		 * @param $sDBSubName string Prefix to the tables of itop in the database
+		 *
+		 * @param string $sDBHost string Database host server
+		 * @param string $sDBUser string User login
+		 * @param string $sDBPwd string User password
+		 * @param string $sDBName string Database name
+		 * @param string $sDBSubName string Prefix to the tables of itop in the database
+		 * @param string $sDBTlsKey
+		 * @param string $sDBTlsCert
+		 * @param string $sDBTlsCa
+		 * @param string $sDBTlsCipher
 		 */
-		public function __construct($sDBHost = null, $sDBUser = null, $sDBPwd = null, $sDBName = null, $sDBSubName = null)
+		public function __construct(
+			$sDBHost = null, $sDBUser = null, $sDBPwd = null, $sDBName = null, $sDBSubName = null, $sDBTlsKey = null,
+			$sDBTlsCert = null, $sDBTlsCa = null, $sDBTlsCipher = null
+		)
 		{
 			if (is_null($sDBHost))
 			{
 				// Defaulting to the current config
-				$sDBHost = MetaModel::GetConfig()->GetDBHost();
-				$sDBUser = MetaModel::GetConfig()->GetDBUser();
-				$sDBPwd = MetaModel::GetConfig()->GetDBPwd();
-				$sDBName = MetaModel::GetConfig()->GetDBName();
-				$sDBSubName = MetaModel::GetConfig()->GetDBSubName();
+				$oConfig = MetaModel::GetConfig();
+				$sDBHost = $oConfig->GetDBHost();
+				$sDBUser = $oConfig->GetDBUser();
+				$sDBPwd = $oConfig->GetDBPwd();
+				$sDBName = $oConfig->GetDBName();
+				$sDBSubName = $oConfig->GetDBSubName();
+				$sDBTlsKey = $oConfig->GetDBTlsKey();
+				$sDBTlsCert = $oConfig->GetDBTlsCert();
+				$sDBTlsCa = $oConfig->GetDBTlsCA();
+				$sDBTlsCipher = $oConfig->GetDBTlsCipher();
 			}
 	
 			// Compute the port (if present in the host name)
@@ -143,21 +159,26 @@ if (class_exists('ZipArchive')) // The setup must be able to start even if the "
 			$this->sDBPwd = $sDBPwd;
 			$this->sDBName = $sDBName;
 			$this->sDBSubName = $sDBSubName;
+			$this->sDBTlsKey = $sDBTlsKey;
+			$this->sDBTlsCert = $sDBTlsCert;
+			$this->sDBTlsCa = $sDBTlsCa;
+			$this->sDBTlsCipher = $sDBTlsCipher;
+			$this->sDBTlsKey = $sDBTlsKey;
+			$this->sDBTlsCert = $sDBTlsCert;
+			$this->sDBTlsCa = $sDBTlsCa;
+			$this->sDBTlsCipher = $sDBTlsCipher;
 		}
 	
 		protected $sMySQLBinDir = '';
-		/**
-		 * Create a normalized backup name, depending on the current date/time and Database
-		 * @param sNameSpec string Name and path, eventually containing itop placeholders + time formatting specs
-		 */	 	
+
 		public function SetMySQLBinDir($sMySQLBinDir)
 		{
 			$this->sMySQLBinDir = $sMySQLBinDir;
 		}	
 	
 		/**
-		 * Create a normalized backup name, depending on the current date/time and Database
-		 * @param sNameSpec string Name and path, eventually containing itop placeholders + time formatting specs
+		 * @param string $sNameSpec Name and path, eventually containing itop placeholders + time formatting specs
+		 * @return string a normalized backup name, depending on the current date/time and Database
 		 */	 	
 		public function MakeName($sNameSpec = "__DB__-%Y-%m-%d")
 		{
@@ -227,6 +248,45 @@ if (class_exists('ZipArchive')) // The setup must be able to start even if the "
 			//    It suggests to rely on pctnl_* function instead of using escapeshellargs
 			return escapeshellarg($sValue);
 		}
+
+		/**
+		 * @return string TLS arguments for CLI programs such as mysqldump. Empty string if the config does not use TLS.
+		 *
+		 * @see https://dev.mysql.com/doc/refman/5.6/en/encrypted-connection-options.html
+		 */
+		private function GetMysqlCliTlsOptionsFromAttr() {
+			if ((empty($this->sDBTlsKey) || empty($this->sDBTlsCert) || empty($this->sDBTlsCa)))
+			{
+				return '';
+			}
+
+			$sTlsOptions = '';
+			$sTlsOptions .= ' --ssl';
+
+			$sTlsOptions .= self::GetMysqliCliSingleOption('ssl-key', $this->sDBTlsKey);
+			$sTlsOptions .= self::GetMysqliCliSingleOption('ssl-cert', $this->sDBTlsCert);
+			$sTlsOptions .= self::GetMysqliCliSingleOption('ssl-ca', $this->sDBTlsCa);
+
+			$sTlsOptions .= self::GetMysqliCliSingleOption('ssl-cipher', $this->sDBTlsCipher);
+
+			return $sTlsOptions;
+		}
+
+		/**
+		 * @param string $sCliArgName
+		 * @param string $sData
+		 *
+		 * @return string empty if data is empty, else argument in form of ' --cliargname=data'
+		 */
+		private static function GetMysqliCliSingleOption($sCliArgName, $sData)
+		{
+			if (empty($sData))
+			{
+				return;
+			}
+
+			return ' --'.$sCliArgName.'='.self::EscapeShellArg($sData);
+		}
 	
 		/**
 		 * Create a backup file	
@@ -271,6 +331,8 @@ if (class_exists('ZipArchive')) // The setup must be able to start even if the "
 			{
 				$sMySQLDump = '"'.$sMySQLBinDir.'/mysqldump"';
 			}
+
+			$sTlsOptions = $this->GetMysqlCliTlsOptionsFromAttr();
 	
 			// Store the results in a temporary file
 			$sTmpFileName = self::EscapeShellArg($sBackupFileName);
@@ -284,8 +346,8 @@ if (class_exists('ZipArchive')) // The setup must be able to start even if the "
 			}
 			// Delete the file created by tempnam() so that the spawned process can write into it (Windows/IIS)
 			unlink($sBackupFileName);
-			$sCommand = "$sMySQLDump --opt --default-character-set=utf8 --add-drop-database --single-transaction --host=$sHost $sPortOption --user=$sUser --password=$sPwd --result-file=$sTmpFileName $sDBName $sTables 2>&1";
-			$sCommandDisplay = "$sMySQLDump --opt --default-character-set=utf8 --add-drop-database --single-transaction --host=$sHost $sPortOption --user=xxxxx --password=xxxxx --result-file=$sTmpFileName $sDBName $sTables";
+			$sCommand = "$sMySQLDump --opt --default-character-set=utf8 --add-drop-database --single-transaction --host=$sHost $sPortOption --user=$sUser --password=$sPwd $sTlsOptions --result-file=$sTmpFileName $sDBName $sTables 2>&1";
+			$sCommandDisplay = "$sMySQLDump --opt --default-character-set=utf8 --add-drop-database --single-transaction --host=$sHost $sPortOption --user=xxxxx --password=xxxxx $sTlsOptions --result-file=$sTmpFileName $sDBName $sTables";
 	
 			// Now run the command for real
 			$this->LogInfo("Executing command: $sCommandDisplay");

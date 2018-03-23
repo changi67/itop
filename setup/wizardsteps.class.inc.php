@@ -246,21 +246,22 @@ class WizStepInstallOrUpgrade extends WizardStep
 		$oPage->add('<tr><td>Location on the disk:</td><td><input id="previous_version_dir" type="text" name="previous_version_dir" value="'.htmlentities($sPreviousVersionDir, ENT_QUOTES, 'UTF-8').'" size="25"/></td></tr>');
 		SetupUtils::DisplayDBParameters($oPage, false, $sDBServer, $sDBUser, $sDBPwd, $sDBName, $sDBPrefix);
 
-		$aBackupChecks = SetupUtils::CheckBackupPrerequisites($sDBBackupPath);
-		$bCanBackup = true;
+		$bCanBackup = false; //can't backup, as we might use TLS and no parameters are handled in the setup
+//		$aBackupChecks = SetupUtils::CheckBackupPrerequisites($sDBBackupPath);
+//		$bCanBackup = true;
 		$sMySQLDumpMessage = '';
-		foreach($aBackupChecks as $oCheck)
-		{
-			if ($oCheck->iSeverity == CheckResult::ERROR)
-			{
-				$bCanBackup = false;
-				$sMySQLDumpMessage .= '<img src="../images/error.png"/>&nbsp;<b> Warning:</b> '.$oCheck->sLabel;
-			}
-			else
-			{
-				$sMySQLDumpMessage .= '<img src="../images/validation_ok.png"/> '.$oCheck->sLabel.' ';
-			}
-		}
+//		foreach($aBackupChecks as $oCheck)
+//		{
+//			if ($oCheck->iSeverity == CheckResult::ERROR)
+//			{
+//				$bCanBackup = false;
+//				$sMySQLDumpMessage .= '<img src="../images/error.png"/>&nbsp;<b> Warning:</b> '.$oCheck->sLabel;
+//			}
+//			else
+//			{
+//				$sMySQLDumpMessage .= '<img src="../images/validation_ok.png"/> '.$oCheck->sLabel.' ';
+//			}
+//		}
 		$sChecked = ($bCanBackup && $bDBBackup) ? ' checked ' : '';
 		$sDisabled = $bCanBackup ? '' : ' disabled ';
 		$oPage->add('<tr><td colspan="2"><input id="db_backup" type="checkbox" name="db_backup"'.$sChecked.$sDisabled.' value="1"/><label for="db_backup">&nbsp;Backup the '.ITOP_APPLICATION.' database before upgrading</label></td></tr>');
