@@ -978,10 +978,10 @@ class Config
 	protected $m_sDBPwd;
 	protected $m_sDBName;
 	protected $m_sDBSubname;
-	protected $m_sDBSSLKey;
-	protected $m_sDBSSLCert;
-	protected $m_sDBSSLCA;
-	protected $m_sDBSSLCipher;
+	protected $m_sDBTlsKey;
+	protected $m_sDBTlsCert;
+	protected $m_sDBTlsCA;
+	protected $m_sDBTlsCipher;
 	protected $m_sDBCharacterSet;
 	protected $m_sDBCollation;
 
@@ -1071,10 +1071,10 @@ class Config
 		$this->m_sDBPwd = '';
 		$this->m_sDBName = '';
 		$this->m_sDBSubname = '';
-		$this->m_sDBSSLKey = '';
-		$this->m_sDBSSLCert = '';
-		$this->m_sDBSSLCA = '';
-		$this->m_sDBSSLCipher = '';
+		$this->m_sDBTlsKey = '';
+		$this->m_sDBTlsCert = '';
+		$this->m_sDBTlsCA = '';
+		$this->m_sDBTlsCipher = '';
 		$this->m_sDBCharacterSet = DEFAULT_CHARACTER_SET;
 		$this->m_sDBCollation = DEFAULT_COLLATION;
 		$this->m_bLogGlobal = DEFAULT_LOG_GLOBAL;
@@ -1195,10 +1195,10 @@ class Config
 		$this->m_sDBPwd = trim($MySettings['db_pwd']);
 		$this->m_sDBName = trim($MySettings['db_name']);
 		$this->m_sDBSubname = trim($MySettings['db_subname']);
-		$this->m_sDBSSLKey = trim($MySettings['db_ssl_key']);
-		$this->m_sDBSSLCert = trim($MySettings['db_ssl_cert']);
-		$this->m_sDBSSLCA = trim($MySettings['db_ssl_ca']);
-		$this->m_sDBSSLCipher = trim($MySettings['db_ssl_cipher']);
+		$this->m_sDBTlsKey = isset($MySettings['db_tls.key']) ? (trim($MySettings['db_tls.key'])) : '';
+		$this->m_sDBTlsCert = isset($MySettings['db_tls.cert']) ? (trim($MySettings['db_tls.cert'])) : '';
+		$this->m_sDBTlsCA = isset($MySettings['db_tls.ca']) ? (trim($MySettings['db_tls.ca'])) : '';
+		$this->m_sDBTlsCipher = isset($MySettings['db_tls.cipher']) ? trim($MySettings['db_tls.cipher']) : '';
 
 		$this->m_sDBCharacterSet = isset($MySettings['db_character_set']) ? trim($MySettings['db_character_set']) : DEFAULT_CHARACTER_SET;
 		$this->m_sDBCollation = isset($MySettings['db_collation']) ? trim($MySettings['db_collation']) : DEFAULT_COLLATION;
@@ -1283,22 +1283,22 @@ class Config
 		return $this->m_sDBSubname;
 	}
 
-	public function GetDBSSLKey()
+	public function GetDBTlsKey()
 	{
-		return $this->m_sDBSSLKey;
+		return $this->m_sDBTlsKey;
 	}
 
-	public function GetDBSSLCert()
+	public function GetDBTlsCert()
 	{
-		return $this->m_sDBSSLCert;
+		return $this->m_sDBTlsCert;
 	}
-	public function GetDBSSLCA()
+	public function GetDBTlsCA()
 	{
-		return $this->m_sDBSSLCA;
+		return $this->m_sDBTlsCA;
 	}
-	public function GetDBSSLCipher()
+	public function GetDBTlsCipher()
 	{
-		return $this->m_sDBSSLCipher;
+		return $this->m_sDBTlsCipher;
 	}
 	public function GetDBCharacterSet()
 	{
@@ -1415,24 +1415,24 @@ class Config
 		$this->m_sDBSubname = $sDBSubName;
 	}
 
-	public function SetDBSSLKey($sDBSSLKey)
+	public function SetDBTlsKey($sDBTlsKey)
 	{
-		$this->m_sDBSSLKey = $sDBSSLKey;
+		$this->m_sDBTlsKey = $sDBTlsKey;
 	}
 
-	public function SetDBSSLCert($sDBSSLCert)
+	public function SetDBTlsCert($sDBTlsCert)
 	{
-		$this->m_sDBSSLCert = $sDBSSLCert;
+		$this->m_sDBTlsCert = $sDBTlsCert;
 	}
 
-	public function SetDBSSLCA($sDBSSLCA)
+	public function SetDBTlsCA($sDBTlsCA)
 	{
-		$this->m_sDBSSLCA = $sDBSSLCA;
+		$this->m_sDBTlsCA = $sDBTlsCA;
 	}
 
-	public function SetDBSSLCipher($sDBSSLCipher)
+	public function SetDBTlsCipher($sDBTlsCipher)
 	{
-		$this->m_sDBSSLCipher = $sDBSSLCipher;
+		$this->m_sDBTlsCipher = $sDBTlsCipher;
 	}
 
 	public function SetDBCharacterSet($sDBCharacterSet)
@@ -1558,10 +1558,10 @@ class Config
 		$aSettings['db_pwd'] = $this->m_sDBPwd;
 		$aSettings['db_name'] = $this->m_sDBName;
 		$aSettings['db_subname'] = $this->m_sDBSubname;
-		$aSettings['db_ssl_key'] = $this->m_sDBSSLKey;
-		$aSettings['db_ssl_cert'] = $this->m_sDBSSLCert;
-		$aSettings['db_ssl_ca'] = $this->m_sDBSSLCA;
-		$aSettings['db_ssl_cipher'] = $this->m_sDBSSLCipher;
+		$aSettings['db_tls.key'] = $this->m_sDBTlsKey;
+		$aSettings['db_tls.cert'] = $this->m_sDBTlsCert;
+		$aSettings['db_tls.ca'] = $this->m_sDBTlsCA;
+		$aSettings['db_tls.cipher'] = $this->m_sDBTlsCipher;
 		$aSettings['db_character_set'] = $this->m_sDBCharacterSet;
 		$aSettings['db_collation'] = $this->m_sDBCollation;
 		$aSettings['log_global'] = $this->m_bLogGlobal;
@@ -1661,10 +1661,10 @@ class Config
 				'db_pwd' => $this->m_sDBPwd,
 				'db_name' => $this->m_sDBName,
 				'db_subname' => $this->m_sDBSubname,
-				'db_ssl_key' => $this->m_sDBSSLKey,
-				'db_ssl_cert' => $this->m_sDBSSLCert,
-				'db_ssl_ca' => $this->m_sDBSSLCA,
-				'db_ssl_cipher' => $this->m_sDBSSLCipher,
+				'db_tls.key' => $this->m_sDBTlsKey,
+				'db_tls.cert' => $this->m_sDBTlsCert,
+				'db_tls.ca' => $this->m_sDBTlsCA,
+				'db_tls.cipher' => $this->m_sDBTlsCipher,
 				'db_character_set' => $this->m_sDBCharacterSet,
 				'db_collation' => $this->m_sDBCollation,
 				'default_language' => $this->m_sDefaultLanguage,
@@ -1787,10 +1787,10 @@ class Config
 			}
 			$this->SetDBName($sDBName);
 			$this->SetDBSubname($aParamValues['db_prefix']);
-			$this->SetDBSSLKey($aParamValues['db_ssl_key']);
-			$this->SetDBSSLCert($aParamValues['db_ssl_cert']);
-			$this->SetDBSSLCA($aParamValues['db_ssl_ca']);
-			$this->SetDBSSLCipher($aParamValues['db_ssl_cipher']);
+			if (isset($aParamValues['db_tls.key'])){$this->SetDBTlsKey($aParamValues['db_tls.key']);}
+			if (isset($aParamValues['db_tls.cert'])){$this->SetDBTlsCert($aParamValues['db_tls.cert']);}
+			if (isset($aParamValues['db_tls.ca'])){$this->SetDBTlsCA($aParamValues['db_tls.ca']);}
+			if (isset($aParamValues['db_tls.cipher'])){$this->SetDBTlsCipher($aParamValues['db_tls.cipher']);}
 		}
 		
 		if (isset($aParamValues['selected_modules']))

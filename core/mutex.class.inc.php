@@ -32,10 +32,10 @@ class iTopMutex
 	protected $sName;
 	protected $hDBLink;
 	protected $bLocked; // Whether or not this instance of the Mutex is locked
-	protected $sDBSSLKey;
-	protected $sDBSSLCert;
-	protected $sDBSSLCA;
-	protected $sDBSSLCipher;
+	protected $sDBTlsKey;
+	protected $sDBTlsCert;
+	protected $sDBTlsCA;
+	protected $sDBTlsCipher;
 	static protected $aAcquiredLocks = array(); // Number of instances of the Mutex, having the lock, in this page
 
 	public function __construct($sName, $sDBHost = null, $sDBUser = null, $sDBPwd = null)
@@ -45,10 +45,10 @@ class iTopMutex
 		$oConfig = utils::GetConfig(); // Will return an empty config when called during the setup
 		$sDBName = $oConfig->GetDBName();
 		$sDBSubname = $oConfig->GetDBSubname();
-		$this->sDBSSLKey = $oConfig->GetDBSSLKey();
-		$this->sDBSSLCert = $oConfig->GetDBSSLCert();
-		$this->sDBSSLCA = $oConfig->GetDBSSLCA();
-		$this->sDBSSLCipher = $oConfig->GetDBSSLCipher();
+		$this->sDBTlsKey = $oConfig->GetDBTlsKey();
+		$this->sDBTlsCert = $oConfig->GetDBTlsCert();
+		$this->sDBTlsCA = $oConfig->GetDBTlsCA();
+		$this->sDBTlsCipher = $oConfig->GetDBTlsCipher();
 		$this->sName = 'itop.'.$sName;
 		if (substr($sName, -strlen($sDBName.$sDBSubname)) != $sDBName.$sDBSubname)
 		{
@@ -212,13 +212,13 @@ class iTopMutex
 			$sServer = $aConnectInfo[0];
 			$iPort = $aConnectInfo[1];
 			$this->hDBLink = mysqli_init();
-			if ( empty($this->sDBSSLKey) || empty($this->sDBSSLCert) || empty($this->sDBSSLCA) )
+			if ( empty($this->sDBTlsKey) || empty($this->sDBTlsCert) || empty($this->sDBTlsCA) )
 			{
 				$this->hDBLink->real_connect($sServer,$sUser,$sPwd,'',$iPort);
 			}
 			else
 			{
-				$this->hDBLink->ssl_set($this->sDBSSLKey,$this->sDBSSLCert,$this->sDBSSLCA,NULL,$this->sDBSSLCipher);
+				$this->hDBLink->ssl_set($this->sDBTlsKey,$this->sDBTlsCert,$this->sDBTlsCA,NULL,$this->sDBTlsCipher);
 				$this->hDBLink->real_connect($sServer,$sUser,$sPwd,'',$iPort, ini_get("mysqli.default_socket"),MYSQLI_CLIENT_SSL );
 			}
 		}
@@ -226,13 +226,13 @@ class iTopMutex
 		{
 			$this->hDBLink = new mysqli();
 			$this->hDBLink->init();
-			if ( empty($this->sDBSSLKey) || empty($this->sDBSSLCert) || empty($this->sDBSSLCA) )
+			if ( empty($this->sDBTlsKey) || empty($this->sDBTlsCert) || empty($this->sDBTlsCA) )
 			{
 				$this->hDBLink->real_connect($sHost,$sUser,$sPwd); 
 			}
 			else
 			{
-				$this->hDBLink->ssl_set($this->sDBSSLKey,$this->sDBSSLCert,$this->sDBSSLCA,NULL,$this->sDBSSLCipher);
+				$this->hDBLink->ssl_set($this->sDBTlsKey,$this->sDBTlsCert,$this->sDBTlsCA,NULL,$this->sDBTlsCipher);
 				$this->hDBLink->real_connect('p:'.$sHost,$sUser,$sPwd,'',NULL, ini_get("mysqli.default_socket"),MYSQLI_CLIENT_SSL ); 
 			}
 		}

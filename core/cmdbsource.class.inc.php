@@ -58,22 +58,22 @@ class CMDBSource
 	protected static $m_sDBUser;
 	protected static $m_sDBPwd;
 	protected static $m_sDBName;
-	protected static $m_sDBSSLKey;
-	protected static $m_sDBSSLCert;
-	protected static $m_sDBSSLCA;
-	protected static $m_sDBSSLCipher;
+	protected static $m_sDBTlsKey;
+	protected static $m_sDBTlsCert;
+	protected static $m_sDBTlsCA;
+	protected static $m_sDBTlsCipher;
 	protected static $m_oMysqli;
 
-	public static function Init($sServer, $sUser, $sPwd, $sSource = '', $sSSLKey = NULL, $sSSLCert = NULL, $sSSLCA = NULL, $sSSLCipher = NULL )
+	public static function Init($sServer, $sUser, $sPwd, $sSource = '', $sTlsKey = NULL, $sTlsCert = NULL, $sTlsCA = NULL, $sTlsCipher = NULL )
 	{
 		self::$m_sDBHost = $sServer;
 		self::$m_sDBUser = $sUser;
 		self::$m_sDBPwd = $sPwd;
 		self::$m_sDBName = $sSource;
-		self::$m_sDBSSLKey = $sSSLKey;
-		self::$m_sDBSSLCert = $sSSLCert;
-		self::$m_sDBSSLCA = $sSSLCA;
-		self::$m_sDBSSLCipher = $sSSLCipher;
+		self::$m_sDBTlsKey = empty($sTlsKey) ? null : $sTlsKey;
+		self::$m_sDBTlsCert = empty($sTlsCert) ? null : $sTlsCert;
+		self::$m_sDBTlsCA = empty($sTlsCA) ? null : $sTlsCA;
+		self::$m_sDBTlsCipher = empty($sTlsCipher) ? null : $sTlsCipher;
 		self::$m_oMysqli = null;
 
 		mysqli_report(MYSQLI_REPORT_STRICT); // *some* errors (like connection errors) will throw mysqli_sql_exception instead
@@ -89,13 +89,13 @@ class CMDBSource
 				$iPort = (int)$aConnectInfo[1];
 				self::$m_oMysqli = new mysqli();
 				self::$m_oMysqli->init();
-				if ( empty(self::$m_sDBSSLKey) || empty(self::$m_sDBSSLCert) || empty(self::$m_sDBSSLCA) ) 
+				if ( empty(self::$m_sDBTlsKey) || empty(self::$m_sDBTlsCert) || empty(self::$m_sDBTlsCA) )
 				{
 					self::$m_oMysqli->real_connect($sServer,self::$m_sDBUser,self::$m_sDBPwd,'',$iPort);
 				}
 				else
 				{ 
-					self::$m_oMysqli->ssl_set(self::$m_sDBSSLKey,self::$m_sDBSSLCert,self::$m_sDBSSLCA,NULL,self::$m_sDBSSLCipher);
+					self::$m_oMysqli->ssl_set(self::$m_sDBTlsKey,self::$m_sDBTlsCert,self::$m_sDBTlsCA,NULL,self::$m_sDBTlsCipher);
 					self::$m_oMysqli->real_connect($sServer,self::$m_sDBUser,self::$m_sDBPwd,'',$iPort, ini_get("mysqli.default_socket"),MYSQLI_CLIENT_SSL );
 				}
 			}
@@ -103,14 +103,15 @@ class CMDBSource
 			{
 				self::$m_oMysqli = new mysqli();
 				self::$m_oMysqli->init();
-				if ( empty(self::$m_sDBSSLKey) || empty(self::$m_sDBSSLCert) || empty(self::$m_sDBSSLCA) ) 
+				if ( empty(self::$m_sDBTlsKey) || empty(self::$m_sDBTlsCert) || empty(self::$m_sDBTlsCA) )
 				{
 					self::$m_oMysqli->real_connect($sServer,self::$m_sDBUser,self::$m_sDBPwd);
 				}
 				else
 				{ 
-					self::$m_oMysqli->ssl_set(self::$m_sDBSSLKey,self::$m_sDBSSLCert,self::$m_sDBSSLCA,NULL,self::$m_sDBSSLCipher);
-					self::$m_oMysqli->real_connect('p:'.self::$m_sDBHost,self::$m_sDBUser,self::$m_sDBPwd,'',NULL, ini_get("mysqli.default_socket"),MYSQLI_CLIENT_SSL );
+					self::$m_oMysqli->ssl_set(self::$m_sDBTlsKey,self::$m_sDBTlsCert,self::$m_sDBTlsCA,NULL,self::$m_sDBTlsCipher);
+					self::$m_oMysqli->real_connect(self::$m_sDBHost, self::$m_sDBUser, self::$m_sDBPwd, '', null,
+						ini_get("mysqli.default_socket"), MYSQLI_CLIENT_SSL);
 				}
 			}
 		}

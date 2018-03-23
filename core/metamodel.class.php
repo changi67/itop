@@ -160,6 +160,7 @@ abstract class MetaModel
 		var_dump(get_class_vars(__CLASS__));
 	}
 
+	/** @var \Config */
 	private static $m_oConfig = null;
 	protected static $m_aModulesParameters = array();
 
@@ -4252,10 +4253,10 @@ abstract class MetaModel
 		$sUser = self::$m_oConfig->GetDBUser();
 		$sPwd = self::$m_oConfig->GetDBPwd();
 		$sSource = self::$m_oConfig->GetDBName();
-		$sSSLKey = self::$m_oConfig->GetDBSSLKey();
-		$sSSLCert = self::$m_oConfig->GetDBSSLCert();
-		$sSSLCA = self::$m_oConfig->GetDBSSLCA();
-		$sSSLCipher = self::$m_oConfig->GetDBSSLCipher();
+		$sTlsKey = self::$m_oConfig->GetDBTlsKey();
+		$sTlsCert = self::$m_oConfig->GetDBTlsCert();
+		$sTlsCA = self::$m_oConfig->GetDBTlsCA();
+		$sTlsCipher = self::$m_oConfig->GetDBTlsCipher();
 		$sTablePrefix = self::$m_oConfig->GetDBSubname();
 		$sCharacterSet = self::$m_oConfig->GetDBCharacterSet();
 		$sCollation = self::$m_oConfig->GetDBCollation();
@@ -4337,7 +4338,7 @@ abstract class MetaModel
 		self::$m_sDBName = $sSource;
 		self::$m_sTablePrefix = $sTablePrefix;
 
-		CMDBSource::Init($sServer, $sUser, $sPwd, '', $sSSLKey, $sSSLCert, $sSSLCA, $sSSLCipher); // do not select the DB (could not exist)
+		CMDBSource::Init($sServer, $sUser, $sPwd, '', $sTlsKey, $sTlsCert, $sTlsCA, $sTlsCipher); // do not select the DB (could not exist)
 		CMDBSource::SetCharacterSet($sCharacterSet, $sCollation);
 		// Later when timezone implementation is correctly done: CMDBSource::SetTimezone($sDBTimezone);
 	}
